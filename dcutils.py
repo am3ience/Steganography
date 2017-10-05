@@ -10,7 +10,7 @@ import dcimage
 #check for nulls to signify if we are dealing with data or header info
 #bytes determined to be data result in the hidden file
 #---------------------------------------------------------------
-def write(mainimage, secret, output, password):
+def write(mainimage, secret, output):
 	#string contains the header, data and length in binary
 	Stringbits = dcimage.createString(secret)
 	imageObject = Image.open(mainimage).convert('RGB')
@@ -53,7 +53,7 @@ def write(mainimage, secret, output, password):
 #check for nulls to signify if we are dealing with data or header info
 #bytes determined to be data result in the hidden file
 #---------------------------------------------------------------
-def read(mainimage, output, password):
+def read(mainimage, output):
 	lsbByte_Array = []
 	dataString = ""
 	secretFileName = ""

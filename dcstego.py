@@ -9,13 +9,13 @@ argumentParser.add_argument('-m','--main',dest='main', help='main image filename
 argumentParser.add_argument('-s','--secret',dest='secret', help='secret image filename')
 argumentParser.add_argument('-o','--option',dest='option', help='option: \'read\' or \'write\'', required=True)
 argumentParser.add_argument('-out','--output',dest='output', help='output filename')
-argumentParser.add_argument('-p', '--password', dest='password', help='password to encrypt / decrypt file', required=True)
+#argumentParser.add_argument('-p', '--password', dest='password', help='password to encrypt / decrypt file', required=True)
 args = argumentParser.parse_args()
 
 image = args.main
 secret = args.secret
 output = args.output
-password = args.password
+#password = args.password
 
 
 #check if cover image is big enough to hide secret data
@@ -40,9 +40,9 @@ def main():
 
 	if args.option == "write":
 		if CheckFileSize():
-			write(image, secret, output, password)
+			write(image, secret, output)
 	elif args.option == "read":
-		read(image, output, password)
+		read(image, output)
 
 
 main()
