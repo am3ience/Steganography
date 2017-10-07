@@ -57,8 +57,8 @@ def read(mainimage, output):
 	secretFileName = ""
 	lsbString = ""
 	count = 0
-	headerReceived=0
-	sizeReceived=0
+	headerReceived = False #default
+	sizeReceived = False #default 
 	imageObject = dcimage.openFile(mainimage)
 	pixels = imageObject.load()
 	imageWidth, imageHeight = imageObject.size
@@ -77,31 +77,31 @@ def read(mainimage, output):
 			#for each of rgb
 			for i in range(0,3):
 				#check for flags
-				if (headerReceived == 0 or sizeReceived == 0):
+				if (headerReceived == False or sizeReceived == False):
 					lsbString += secretBits[i]
 
 					#verify each byte
 					if len(lsbString) == 8:
 						lsbByte_Array.append(lsbString)
 						if lsbString == "00000000":
-							if headerReceived == 0:
+							if headerReceived == False:
 
 								#convert the the bit array into an ascii String
 								#set flag when header and size was received
 								fileName = ''.join(binascii.unhexlify('%x' % int(b,2)) for b in lsbByte_Array[0:len(lsbByte_Array) - 1])
 								print "File name: " + str(fileName)
-								headerReceived = 1
-							elif sizeReceived == 0:
+								headerReceived = True
+							elif sizeReceived == False:
 								fileSize = ''.join(binascii.unhexlify('%x' % int(b,2)) for b in lsbByte_Array[0:len(lsbByte_Array) - 1])
 								print "File size: " + fileSize
-								sizeReceived=1
+								sizeReceived = True
 
 							#reset the values
 							lsbByte_Array = []
 						lsbString = ""
 
 				#hidden data handling 
-				elif (headerReceived == 1 and sizeReceived == 1):
+				elif (headerReceived == True and sizeReceived == True):
 					if int(count) < int(fileSize):
 						dataString += secretBits[i]
 						count += 1
