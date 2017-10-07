@@ -1,22 +1,27 @@
 #!/usr/bin/python
 import sys, os, argparse, binascii, array
 from dcutils import *
+from dcimage import * 
 from PIL import Image
 
+key="comp8505comp8505"
 
 argumentParser = argparse.ArgumentParser(description="Steganography")
 argumentParser.add_argument('-m','--main',dest='main', help='main image filename', required=True)
 argumentParser.add_argument('-s','--secret',dest='secret', help='secret image filename')
 argumentParser.add_argument('-o','--option',dest='option', help='option: \'read\' or \'write\'', required=True)
 argumentParser.add_argument('-out','--output',dest='output', help='output filename')
-#argumentParser.add_argument('-p', '--password', dest='password', help='password to encrypt / decrypt file', required=True)
 args = argumentParser.parse_args()
 
 image = args.main
 secret = args.secret
 output = args.output
-#password = args.password
 
+def openImage():
+    return Image.open(secret)
+   
+def readImage():
+    return Image.open(output)
 
 #check if cover image is big enough to hide secret data
 #---------------------------------------------------------------
@@ -40,9 +45,15 @@ def main():
 
 	if args.option == "write":
 		if CheckFileSize():
+			img = openImage()
+			pxs = scramblePixels(img)
+			storePixels(secret, img.size, pxs)
 			write(image, secret, output)
 	elif args.option == "read":
 		read(image, output)
+		img1 = readImage()
+		pxs = unScramblePixels(img1)
+        storePixels(output, img1.size, pxs)
 
 
 main()

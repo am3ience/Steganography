@@ -1,17 +1,35 @@
 #!/usr/bin/python
+
+#------------------------------------
+#pixelnumbers1 = str(pixelnumbers1)
+#pixelnumbers1 = int(pixelnumbers1.encode('rot13'))
+#pixelnumbers1 = pad(str(pixelnumbers1))
+#pixelnumbers1 = encryption_suite.encrypt(pixelnumbers1)
+#pixelnumbers1 = int(pixelnumbers1, 2)
+#------------------------------------
+
 import os, sys, binascii, array
 from Crypto.Cipher import AES
 from Crypto import Random
+from bitstring import BitArray
 import hashlib
 from PIL import Image
 import dcimage
+from cryptography.fernet import Fernet
+
+keyf = Fernet.generate_key()
+key="comp8505comp8505"
+encryption_suite = AES.new(key, AES.MODE_CBC, 'This is an IV456')
+decryption_suite = AES.new(key, AES.MODE_CBC, 'This is an IV456')
+cipher_suite = Fernet(keyf)
+
 
 #examine the lsb of each pixel, grouping into bytes
 #check for nulls to signify if we are dealing with data or header info
 #bytes determined to be data result in the hidden file
 #---------------------------------------------------------------
 def write(mainimage, secret, output):
-	#string contains the header, data and length in binary
+	
 	Stringbits = dcimage.createString(secret)
 	imageObject = Image.open(mainimage).convert('RGB')
 	imageWidth, imageHeight = imageObject.size
@@ -34,9 +52,13 @@ def write(mainimage, secret, output):
 			for i in range(0,3):
 				#verify we have reached the end of our hidden file
 				if count >= len(Stringbits):
-					#convert the bits to their rgb value and appned them
+					#convert the bits to their rgb value and appened them
 					for rgbValue in pixelList:
-						rgb_Array.append(int(''.join(str(b) for b in rgbValue), 2))
+						pixelnumbers1 = int(''.join(str(b) for b in rgbValue), 2)
+						#pixelnumbers1 = cipher_suite.encrypt(bytes(pixelnumbers1))
+						print pixelnumbers1
+						#pixelnumbers1 = int(pixelnumbers1)
+						rgb_Array.append(pixelnumbers1)
 					pixels[x, y] = (rgb_Array[0], rgb_Array[1], rgb_Array[2])
 					print "Completed"
 					return imageObject.save(output)
@@ -46,6 +68,7 @@ def write(mainimage, secret, output):
 					pixelList[i][7] = Stringbits[count]
 					count+=1
 			pixels[x, y] = dcimage.getPixel(pixelList)
+
 
 
 
