@@ -1,35 +1,14 @@
 #!/usr/bin/python
-
-#------------------------------------
-#pixelnumbers1 = str(pixelnumbers1)
-#pixelnumbers1 = int(pixelnumbers1.encode('rot13'))
-#pixelnumbers1 = pad(str(pixelnumbers1))
-#pixelnumbers1 = encryption_suite.encrypt(pixelnumbers1)
-#pixelnumbers1 = int(pixelnumbers1, 2)
-#------------------------------------
-
 import os, sys, binascii, array
-from Crypto.Cipher import AES
-from Crypto import Random
 from bitstring import BitArray
 import hashlib
 from PIL import Image
 import dcimage
-from cryptography.fernet import Fernet
 
-keyf = Fernet.generate_key()
-key="comp8505comp8505"
-encryption_suite = AES.new(key, AES.MODE_CBC, 'This is an IV456')
-decryption_suite = AES.new(key, AES.MODE_CBC, 'This is an IV456')
-cipher_suite = Fernet(keyf)
-
-
-#examine the lsb of each pixel, grouping into bytes
-#check for nulls to signify if we are dealing with data or header info
-#bytes determined to be data result in the hidden file
+#inserts data into the LSB of rgb value
+#uses the null delimiter as flag
 #---------------------------------------------------------------
 def write(mainimage, secret, output):
-	
 	Stringbits = dcimage.createString(secret)
 	imageObject = Image.open(mainimage).convert('RGB')
 	imageWidth, imageHeight = imageObject.size
@@ -42,6 +21,7 @@ def write(mainimage, secret, output):
 	for x in range (imageWidth):
 		for y in range (imageHeight):
 			r,g,b = pixels[x,y]
+			
 			#convert each pixel into an 8 bit representation
 			redPixel = list(bin(r)[2:].zfill(8))
 			greenPixel = list(bin(g)[2:].zfill(8))
@@ -50,20 +30,15 @@ def write(mainimage, secret, output):
 
 			#for each of rgb
 			for i in range(0,3):
-				#verify we have reached the end of our hidden file
+				#go to the end of the secret file
 				if count >= len(Stringbits):
 					#convert the bits to their rgb value and appened them
 					for rgbValue in pixelList:
 						pixelnumbers1 = int(''.join(str(b) for b in rgbValue), 2)
-						#pixelnumbers1 = cipher_suite.encrypt(bytes(pixelnumbers1))
-						print pixelnumbers1
-						#pixelnumbers1 = int(pixelnumbers1)
 						rgb_Array.append(pixelnumbers1)
 					pixels[x, y] = (rgb_Array[0], rgb_Array[1], rgb_Array[2])
-					print "Completed"
+					print "Done"
 					return imageObject.save(output)
-
-				#If we haven't rached the end of the file, store a bit
 				else:
 					pixelList[i][7] = Stringbits[count]
 					count+=1
@@ -72,17 +47,17 @@ def write(mainimage, secret, output):
 
 
 
-#examine the lsb of each pixel, grouping into bytes
+#examine the lsb of each pixel
 #check for nulls to signify if we are dealing with data or header info
-#bytes determined to be data result in the hidden file
+#bytes determined to be data result in a hidden file
 #---------------------------------------------------------------
 def read(mainimage, output):
 	lsbByte_Array = []
 	dataString = ""
 	secretFileName = ""
 	lsbString = ""
-	count = 0#iterator
-	headerReceived=0#flags
+	count = 0
+	headerReceived=0
 	sizeReceived=0
 	imageObject = dcimage.openFile(mainimage)
 	pixels = imageObject.load()
@@ -92,7 +67,8 @@ def read(mainimage, output):
 	for x in range(imageWidth):
 		for y in range(imageHeight):
 			r, g, b = pixels[x, y]
-			#trim so we are dealing with only the least significant bit
+			
+			#trim to LSB
 			redPixel = str(bin(r)[2:].zfill(8))[7]
 			greenPixel = str(bin(g)[2:].zfill(8))[7]
 			bluePixel = str(bin(b)[2:].zfill(8))[7]
@@ -100,15 +76,13 @@ def read(mainimage, output):
 
 			#for each of rgb
 			for i in range(0,3):
-				#check if our flags are set
+				#check for flags
 				if (headerReceived == 0 or sizeReceived == 0):
 					lsbString += secretBits[i]
 
 					#verify each byte
 					if len(lsbString) == 8:
 						lsbByte_Array.append(lsbString)
-
-						#check if we have received a NULL byte
 						if lsbString == "00000000":
 							if headerReceived == 0:
 
@@ -126,12 +100,10 @@ def read(mainimage, output):
 							lsbByte_Array = []
 						lsbString = ""
 
-				#once headers received, resulting data is hidden data
+				#hidden data handling 
 				elif (headerReceived == 1 and sizeReceived == 1):
 					if int(count) < int(fileSize):
-						#keep appending secret bits to the dataString until depleted
 						dataString += secretBits[i]
 						count += 1
 					else:
-						#send to have hidden file created
 						return dcimage.saveImage(output, dataString)

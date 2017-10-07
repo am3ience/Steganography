@@ -4,8 +4,7 @@ from dcutils import *
 from dcimage import * 
 from PIL import Image
 
-key="comp8505comp8505"
-
+#Argument Parser
 argumentParser = argparse.ArgumentParser(description="Steganography")
 argumentParser.add_argument('-m','--main',dest='main', help='main image filename', required=True)
 argumentParser.add_argument('-s','--secret',dest='secret', help='secret image filename')
@@ -13,13 +12,15 @@ argumentParser.add_argument('-o','--option',dest='option', help='option: \'read\
 argumentParser.add_argument('-out','--output',dest='output', help='output filename')
 args = argumentParser.parse_args()
 
+#Put arguments into variables 
 image = args.main
 secret = args.secret
 output = args.output
 
+#Open image for encrypting
 def openImage():
     return Image.open(secret)
-   
+ #Open image for decrypting
 def readImage():
     return Image.open(output)
 
@@ -28,11 +29,10 @@ def readImage():
 def CheckFileSize():
 	image = Image.open(args.main)
 	width, height = image.size
-	#3 bits in a pixel
+	
 	storedbits = width * height * 3
-	secretFileSize = os.path.getsize(args.secret) * 8  #in bits
+	secretFileSize = os.path.getsize(args.secret) * 8  
 
-    #if main image large enough True
 	if storedbits > secretFileSize:
 		return True
 	else:
@@ -41,6 +41,8 @@ def CheckFileSize():
 
         exit()
 
+#main function
+#---------------------------------------------------------------
 def main():
 
 	if args.option == "write":
